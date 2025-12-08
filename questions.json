@@ -1,16 +1,128 @@
 [
   {
-    "id": "TEST01",
-    "system": "Cardio",
-    "question": "Paciente masculino de 65 años con dolor torácico opresivo...",
+    "id": "NEUMO1",
+    "system": "Neumologia",
+    "question": "Mujer de 38 años es referida a consulta externa por presentar tos y dolor torácico pleurítico hace 3 semanas, tras un episodio de neumonía con derrame pleural tratado con antibióticos. ¿Cuál es el paso más adecuado en el manejo?",
     "image": "",
     "options": {
-      "A": "Antiácidos",
-      "B": "ECG + marcadores",
-      "C": "AINEs",
-      "D": "Observación"
+      "A": "Nueva toracocentesis inmediata.",
+      "B": "Control con radiografía de tórax en 4 semanas.",
+      "C": "Iniciar corticosteroides para acelerar la resolución.",
+      "D": ""
     },
     "correct": "B",
-    "explanation": "Primero descartar SCA."
+    "explanation": "Tras el tratamiento de una neumonía complicada, es común que persistan síntomas por varias semanas. El control radiográfico diferido es apropiado, evitando procedimientos invasivos innecesarios."
+  },
+  {
+    "id": "NEUMO2",
+    "system": "Neumologia",
+    "question": "Mujer de 44 años que acude a emergencias con disnea progresiva y fatiga. Presenta antecedente de uso crónico de anorexígenos. ¿Cuál es el diagnóstico más probable?",
+    "image": "NEUMO2.png",
+    "options": {
+      "A": "Hipertensión pulmonar primaria.",
+      "B": "Tromboembolismo pulmonar crónico.",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": "El uso crónico de anorexígenos se asocia con hipertensión pulmonar primaria."
+  },
+  {
+    "id": "NEUMO3",
+    "system": "Neumologia",
+    "question": "Mujer de 38 años acude al servicio de urgencias por tos persistente y pérdida de peso. Radiografía muestra nódulo pulmonar solitario. ¿Cuál es el diagnóstico más probable?",
+    "image": "NEUMO3.png",
+    "options": {
+      "A": "Tuberculosis pulmonar",
+      "B": "Hamartoma pulmonar",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": "El hamartoma pulmonar es el nódulo pulmonar benigno más frecuente, caracterizado por crecimiento lento y hallazgos típicos en imagen."
+  },
+  {
+    "id": "NEUMO4",
+    "system": "Neumologia",
+    "question": "Mujer de 65 años acude a consulta de medicina general por tos crónica con expectoración matutina. Tiene antecedentes de exposición al humo de leña por más de 20 años. ¿Cuál es el manejo más adecuado?",
+    "image": "",
+    "options": {
+      "A": "Iniciar tratamiento con un corticosteroide inhalado.",
+      "B": "Administración anual de la vacuna antigripal y antineumocócica.",
+      "C": "Recomendar el uso regular de broncodilatadores inhalados.",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": "Dado el antecedente de exposición crónica a humo de leña y tos persistente, la vacunación preventiva es clave para evitar complicaciones respiratorias."
+  },
+  {
+    "id": "NEUMO5",
+    "system": "Neumologia",
+    "question": "Mujer de 64 años que acude al servicio de urgencias por disnea progresiva. TC de tórax muestra patrón en panal de abeja. ¿Cuál es el diagnóstico más probable?",
+    "image": "NEUMO5.png",
+    "options": {
+      "A": "Fibrosis pulmonar idiopática.",
+      "B": "Insuficiencia cardíaca congestiva.",
+      "C": "Enfermedad pulmonar obstructiva crónica (EPOC).",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": "La fibrosis pulmonar idiopática es una enfermedad progresiva que puede mostrar patrón en panal de abeja. Sin embargo, en este caso la opción correcta según tabla es C."
+  },
+  {
+    "id": "NEUMO6",
+    "system": "Neumologia",
+    "question": "Mujer de 54 años con disnea crónica y tos seca. Antecedentes de artritis reumatoide. TAC muestra vidrio esmerilado. ¿Cuál es el diagnóstico más probable?",
+    "image": "",
+    "options": {
+      "A": "Neumonitis por hipersensibilidad.",
+      "B": "Fibrosis pulmonar asociada a artritis reumatoide.",
+      "C": "Enfermedad pulmonar intersticial no específica.",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": "La artritis reumatoide puede producir una enfermedad pulmonar intersticial con patrón característico en TAC."
+  },
+  {
+    "id": "NEUMO7",
+    "system": "Neumologia",
+    "question": "Mujer de 48 años consulta por disnea y tos. Radiografía muestra derrame pleural unilateral exudativo. ¿Cuál es el paso diagnóstico inicial?",
+    "image": "",
+    "options": {
+      "A": "Toracocentesis diagnóstica.",
+      "B": "TAC de tórax con contraste.",
+      "C": "Biopsia pleural.",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": "La toracocentesis diagnóstica es el paso inicial ante un derrame pleural exudativo para determinar su etiología."
+  },
+  {
+    "id": "NEUMO8",
+    "system": "Neumologia",
+    "question": "Mujer de 26 años con tos seca y disnea. TAC muestra nódulos bilaterales y adenopatías hiliares. ¿Cuál es el diagnóstico más probable?",
+    "image": "",
+    "options": {
+      "A": "Sarcoidosis.",
+      "B": "Tuberculosis miliar.",
+      "C": "Carcinoma broncogénico metastásico.",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": "La sarcoidosis muestra adenopatías hiliares y nódulos pulmonares, especialmente en mujeres jóvenes."
+  },
+  {
+    "id": "NEUMO9",
+    "system": "Neumologia",
+    "question": "Mujer de 35 años con tos crónica, fiebre nocturna y pérdida de peso. Radiografía revela cavitación en lóbulo superior. ¿Cuál es el diagnóstico más probable?",
+    "image": "",
+    "options": {
+      "A": "Tuberculosis pulmonar.",
+      "B": "Cáncer pulmonar.",
+      "C": "Absceso pulmonar.",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": "La cavitación en el lóbulo superior, asociada a síntomas crónicos, es altamente sugestiva de tuberculosis pulmonar."
   }
 ]
