@@ -1,0 +1,16 @@
+[
+  {
+    "id": "TEST01",
+    "system": "Cardio",
+    "question": "Paciente masculino de 65 años con dolor torácico opresivo...",
+    "image": "",
+    "options": {
+      "A": "Antiácidos",
+      "B": "ECG + marcadores",
+      "C": "AINEs",
+      "D": "Observación"
+    },
+    "correct": "B",
+    "explanation": "Primero descartar SCA."
+  }
+]
