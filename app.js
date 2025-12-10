@@ -1,6 +1,7 @@
 // Parámetros del examen
 const PASS_PERCENT = 70;
 let QUESTIONS_PER_BLOCK = 35;
+let currentMode = "block"; // "block" o "simulacro"
 
 // Estado global
 let allQuestions = [];
@@ -14,6 +15,7 @@ let timerInterval = null;
 const screenStart   = document.getElementById("screen-start");
 const screenExam    = document.getElementById("screen-exam");
 const screenResults = document.getElementById("screen-results");
+const modeSelect    = document.getElementById("mode-select");
 
 const btnStart   = document.getElementById("btn-start");
 const btnPrev    = document.getElementById("btn-prev");
