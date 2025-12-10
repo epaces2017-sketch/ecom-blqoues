@@ -299,29 +299,68 @@
 
       <div class="form-row">
         <label for="system-select">Sistema / tema</label>
-        <select id="system-select">
-          <option value="ALL">Todos los sistemas</option>
-          <option value="Vascular">Vascular</option>
-          <option value="Uro">Uro</option>
+        <div class="form-row">
+  <label for="mode-select">Modo</label>
+  <select id="mode-select">
+    <option value="block">Bloque por sistema</option>
+    <option value="simulacro">Simulacro (mixto)</option>
+  </select>
+</div>
+
+<div class="form-row">
+  <label for="system-select">Sistema / tema</label>
+  <select id="system-select">
+      <option value="Vascular">Vascular</option>
+          <option value="Urologia">Urologia</option>
           <option value="Psychiatria">Psychiatria</option>
-          <option value="Trauma">Trauma</option>
+          <option value="Traumatologia">Traumatologia</option>
           <option value="Neumologia">Neumologia</option>
           <option value="Familiar">Familiar</option>
-          <option value="Hemato">Hemato</option>
-          <option value="Cardio">Cardio</option>
+          <option value="Hematologia">Hematologia</option>
+          <option value="Cardiologia">Cardiologia</option>
           <option value="Cirugía">Cirugía</option>
-          <option value="Derma">Derma</option>
+          <option value="Dermatologia">Dermatologia</option>
           <option value="Endocrino">Endocrino</option>
-          <option value="Gastro">Gastro</option>
-          <option value="Geria">Geria</option>
-          <option value="Gine">Gine</option>
-          <option value="Infecto">Infecto</option>
-          <option value="Neuro">Neuro</option>
-          <option value="Obste">Obste</option>
-          <option value="Otorrino">Otorrino</option>
-          <option value="Pedia">Pedia</option>
+          <option value="Gastroenterologia">Gastroenterologia</option>
+          <option value="Geriatria">Geriatria</option>
+          <option value="Ginecologia">Ginecologia</option>
+          <option value="Infectologia">Infectologia</option>
+          <option value="Neurologia">Neurologia</option>
+          <option value="Obstetricia">Obstetricia</option>
+          <option value="Otorrinolaringología"> Otorrinolaringología</option>
+          <option value="Pediatria">Pediatria</option>
           <option value="Renal">Renal</option>
-          <option value="Rehuma">Rehuma</option>
+          <option value="Reumatologia">Reumatologia</option>
+          <option value="Investigación">Investigación</option>
+  </select>
+</div>
+
+<div class="form-row">
+  <label for="num-questions">Número de preguntas del bloque</label>
+  <input id="num-questions" type="number" min="5" max="300" value="35" />
+</div>
+        <select id="system-select">
+          <option value="Vascular">Vascular</option>
+          <option value="Urologia">Urologia</option>
+          <option value="Psychiatria">Psychiatria</option>
+          <option value="Traumatologia">Traumatologia</option>
+          <option value="Neumologia">Neumologia</option>
+          <option value="Familiar">Familiar</option>
+          <option value="Hematologia">Hematologia</option>
+          <option value="Cardiologia">Cardiologia</option>
+          <option value="Cirugía">Cirugía</option>
+          <option value="Dermatologia">Dermatologia</option>
+          <option value="Endocrino">Endocrino</option>
+          <option value="Gastroenterologia">Gastroenterologia</option>
+          <option value="Geriatria">Geriatria</option>
+          <option value="Ginecologia">Ginecologia</option>
+          <option value="Infectologia">Infectologia</option>
+          <option value="Neurologia">Neurologia</option>
+          <option value="Obstetricia">Obstetricia</option>
+          <option value="Otorrino">Otorrino</option>
+          <option value="Pediatria">Pedia</option>
+          <option value="Renal">Renal</option>
+          <option value="Rehumatologia">Rehuma</option>
           <option value="Investigación">Investigación</option>
         </select>
       </div>
