@@ -135,13 +135,17 @@ function renderQuestion() {
   questionStem.textContent = `(${q.id}) ${q.question}`;
   questionImageWrapper.innerHTML = "";
 
-  if (q.image) {
-    const img = document.createElement("img");
-    img.src = q.image;
-    img.alt = "Imagen de la pregunta";
-    img.className = "question-image";
-    questionImageWrapper.appendChild(img);
-  }
+  questionImageWrapper.innerHTML = "";
+
+// ✅ Nueva validación segura
+if (q.image && typeof q.image === "string" && q.image.trim() !== "") {
+  const img = document.createElement("img");
+  img.src = q.image;
+  img.alt = "Imagen de la pregunta";
+  img.className = "question-image";
+  questionImageWrapper.appendChild(img);
+}
+
 
   optionsContainer.innerHTML = "";
   const letters = ["A","B","C","D"];
