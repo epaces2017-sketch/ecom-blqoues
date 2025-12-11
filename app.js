@@ -141,9 +141,11 @@ if (q.image && typeof q.image === "string" && q.image.trim() !== "") {
   img.src = q.image;
   img.alt = "Imagen de la pregunta";
   img.className = "question-image";
+  // ✅ Si la imagen NO existe, se elimina y se ignora
+  img.onerror = () => img.remove();
+
   questionImageWrapper.appendChild(img);
 }
-
 
   optionsContainer.innerHTML = "";
   const letters = ["A","B","C","D"];
