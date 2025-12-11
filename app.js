@@ -26,18 +26,18 @@ const systemSelect   = document.getElementById("system-select");
 const numQuestionsEl = document.getElementById("num-questions");
 const startError     = document.getElementById("start-error");
 
-const questionCounter = document.getElementById("question-counter");
-const questionSystem  = document.getElementById("question-system");
-const questionStem    = document.getElementById("question-stem");
+const questionCounter      = document.getElementById("question-counter");
+const questionSystem       = document.getElementById("question-system");
+const questionStem         = document.getElementById("question-stem");
 const questionImageWrapper = document.getElementById("question-image-wrapper");
-const optionsContainer = document.getElementById("options-container");
+const optionsContainer     = document.getElementById("options-container");
 
-const globalTimerEl = document.getElementById("global-timer");
+const globalTimerEl        = document.getElementById("global-timer");
 
-const scoreMain   = document.getElementById("score-main");
-const scoreStatus = document.getElementById("score-status");
-const scoreMeta   = document.getElementById("score-meta");
-const resultsTableWrapper = document.getElementById("results-table-wrapper");
+const scoreMain            = document.getElementById("score-main");
+const scoreStatus          = document.getElementById("score-status");
+const scoreMeta            = document.getElementById("score-meta");
+const resultsTableWrapper  = document.getElementById("results-table-wrapper");
 
 // Utilidades
 function shuffle(array) {
@@ -60,7 +60,7 @@ async function loadQuestions() {
   try {
     console.log("Intentando cargar questions.json...");
     const res = await fetch("./questions.json", {
-      cache: "no-store"   // evitar usar versión vieja cacheada
+      cache: "no-store"
     });
 
     console.log("Respuesta HTTP de questions.json:", res.status, res.statusText);
@@ -82,28 +82,6 @@ async function loadQuestions() {
     startError.textContent = "No se pudo cargar el banco de preguntas.";
     allQuestions = [];
   }
-}
-
-function startExam() {
-  // ✅ Reset everything
-  currentIndex = 0;
-  answers = {};
-
-  // ✅ Use ALL questions (or filter if needed)
-  examQuestions = [...allQuestions];
-
-  if (examQuestions.length === 0) {
-    console.error("No hay preguntas cargadas.");
-    startError.textContent = "No hay preguntas disponibles.";
-    return;
-  }
-
-  // ✅ Hide start screen, show exam screen
-  startScreen.style.display = "none";
-  examScreen.style.display = "block";
-
-  // ✅ Render first question
-  renderQuestion();
 }
 
 // Iniciar reloj global
@@ -152,13 +130,13 @@ function renderQuestion() {
 
   // Encabezado
   questionCounter.textContent = `Pregunta ${currentIndex + 1} de ${examQuestions.length}`;
-  questionSystem.textContent = `Sistema: ${q.system}`;
-  questionStem.textContent = `(${q.id}) ${q.question}`;
+  questionSystem.textContent  = `Sistema: ${q.system}`;
+  questionStem.textContent    = `(${q.id}) ${q.question}`;
 
   // Limpiar imagen previa
   questionImageWrapper.innerHTML = "";
 
-  // ✅ Mostrar imagen solo si existe
+  // Imagen (si existe)
   if (q.image && typeof q.image === "string" && q.image.trim() !== "") {
     const img = document.createElement("img");
     img.src = q.image;
@@ -173,13 +151,13 @@ function renderQuestion() {
     questionImageWrapper.appendChild(img);
   }
 
-  // ✅ Mostrar opciones
+  // Opciones
   optionsContainer.innerHTML = "";
   const letters = ["A", "B", "C", "D"];
 
   letters.forEach(letter => {
     const text = q.options[letter];
-    if (!text || text.trim() === "") return; // saltar opciones vacías
+    if (!text || text.trim() === "") return;
 
     const row = document.createElement("div");
     row.className = "option-row";
@@ -214,9 +192,8 @@ function renderQuestion() {
     optionsContainer.appendChild(row);
   });
 
-  // ✅ Botones Prev / Next
+  // Botones Prev / Next
   btnPrev.disabled = currentIndex === 0;
-
   btnNext.textContent =
     currentIndex === examQuestions.length - 1
       ? "Finalizar"
@@ -236,7 +213,7 @@ function finishExam(timeUp = false) {
 
   const percentGlobal = Math.round((correctCount / totalQuestions) * 100);
 
-  // 🔹 Estadísticas por sistema/subárea
+  // Estadísticas por sistema
   const statsBySystem = {};
   examQuestions.forEach(q => {
     const sys = q.system || "Sin sistema";
@@ -248,9 +225,6 @@ function finishExam(timeUp = false) {
   const systems = Object.keys(statsBySystem);
   const totalSystems = systems.length;
 
-  // ✅ Regla ECOM simulacro:
-  //  - subárea aprobada si tiene >=70% correctas (≈5/7)
-  //  - simulacro aprobado si >=70% de subáreas están aprobadas
   let systemsPassed = 0;
   systems.forEach(sys => {
     const s = statsBySystem[sys];
@@ -273,20 +247,19 @@ function finishExam(timeUp = false) {
       `Subáreas aprobadas: <strong>${systemsPassed} / ${totalSystems}</strong> (mínimo ${neededSystems}). ` +
       `Puntaje global: <strong>${percentGlobal}% (${correctCount}/${totalQuestions})</strong>.`;
   } else {
-    // modo bloque normal: criterio simple 70% en ese bloque
     passed = percentGlobal >= PASS_PERCENT;
     statusText = passed ? "APROBADO" : "NO APROBADO";
     metaExtra =
-      `Puntaje del bloque: <strong>${percentGlobal}% (${percentGlobal}%) (${correctCount}/${totalQuestions})</strong>. ` +
+      `Puntaje del bloque: <strong>${percentGlobal}% (${correctCount}/${totalQuestions})</strong>. ` +
       `Criterio: ≥ ${PASS_PERCENT}%.`;
   }
 
   const totalSeconds = Math.floor((Date.now() - examStartTime) / 1000);
-  const avgSeconds = totalSeconds / totalQuestions;
+  const avgSeconds   = totalSeconds / totalQuestions;
 
-  scoreMain.textContent = `${percentGlobal}% (${correctCount} / ${totalQuestions})`;
+  scoreMain.textContent   = `${percentGlobal}% (${correctCount} / ${totalQuestions})`;
   scoreStatus.textContent = statusText;
-  scoreStatus.className = passed ? "score-status-pass" : "score-status-fail";
+  scoreStatus.className   = passed ? "score-status-pass" : "score-status-fail";
 
   let timeMsg = `Tiempo total: <strong>${formatTime(totalSeconds)}</strong>`;
   if (timeUp && currentMode === "simulacro") {
@@ -319,7 +292,7 @@ function finishExam(timeUp = false) {
   `;
 
   examQuestions.forEach((q, idx) => {
-    const userAns = answers[q.id] || "-";
+    const userAns  = answers[q.id] || "-";
     const isCorrect = userAns === q.correct;
 
     html += `
@@ -356,7 +329,7 @@ btnStart.addEventListener("click", () => {
   }
 
   const mode   = modeSelect.value;      // "block" o "simulacro"
-  const system = systemSelect.value;    // ej. "Cardiología"
+  const system = systemSelect.value;
   let   n      = parseInt(numQuestionsEl.value, 10);
 
   if (isNaN(n) || n <= 0) {
@@ -367,7 +340,6 @@ btnStart.addEventListener("click", () => {
   currentMode = mode;
 
   if (mode === "block") {
-    // 🔹 BLOQUE POR SISTEMA
     let pool = allQuestions.filter(q => q.system === system);
 
     if (pool.length === 0) {
@@ -376,12 +348,9 @@ btnStart.addEventListener("click", () => {
     }
 
     const shuffled = shuffle(pool);
-    examQuestions = shuffled.slice(0, Math.min(n, shuffled.length));
+    examQuestions  = shuffled.slice(0, Math.min(n, shuffled.length));
 
   } else if (mode === "simulacro") {
-    // 🔹 SIMULACRO: 7 preguntas por cada subárea/sistema
-
-    // 1. Agrupar por sistema
     const bySystem = {};
     allQuestions.forEach(q => {
       const sys = q.system || "Sin sistema";
@@ -389,7 +358,7 @@ btnStart.addEventListener("click", () => {
       bySystem[sys].push(q);
     });
 
-    const PER_SYSTEM = 7;  // 7 casos por subárea
+    const PER_SYSTEM = 7;
     let selected = [];
 
     Object.keys(bySystem).forEach(sys => {
@@ -398,9 +367,7 @@ btnStart.addEventListener("click", () => {
       selected = selected.concat(slice);
     });
 
-    // 2. Barajar todas juntas
-    selected = shuffle(selected);
-
+    selected      = shuffle(selected);
     examQuestions = selected;
     numQuestionsEl.value = examQuestions.length;
   }
@@ -411,7 +378,7 @@ btnStart.addEventListener("click", () => {
   }
 
   currentIndex = 0;
-  answers = {};
+  answers      = {};
 
   showScreen("exam");
   startTimer(mode);
@@ -427,7 +394,7 @@ btnPrev.addEventListener("click", () => {
 
 btnNext.addEventListener("click", () => {
   if (currentIndex === examQuestions.length - 1) {
-    finishExam();           // 👈 aquí SOLO se llama, no se redefine
+    finishExam();
   } else {
     currentIndex++;
     renderQuestion();
@@ -437,12 +404,13 @@ btnNext.addEventListener("click", () => {
 btnRestart.addEventListener("click", () => {
   stopTimer();
   globalTimerEl.textContent = "00:00";
-  answers = {};
+  answers      = {};
   examQuestions = [];
-  currentIndex = 0;
+  currentIndex  = 0;
   showScreen("start");
 });
 
 // Arranque
 loadQuestions();
 showScreen("start");
+
