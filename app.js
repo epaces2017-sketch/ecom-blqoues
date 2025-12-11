@@ -67,11 +67,23 @@ async function loadQuestions() {
 }
 
 // Iniciar reloj global
-function startTimer() {
+function startTimer(mode) {
   examStartTime = Date.now();
+  if (timerInterval) {
+    clearInterval(timerInterval);
+  }
+
   timerInterval = setInterval(() => {
     const elapsedSec = Math.floor((Date.now() - examStartTime) / 1000);
     globalTimerEl.textContent = formatTime(elapsedSec);
+
+    // ⏰ Límite de 5 horas SOLO en simulacro
+    const LIMIT_SECONDS = 5 * 60 * 60; // 5h
+    if (mode === "simulacro" && elapsedSec >= LIMIT_SECONDS) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      finishExam(true); // true = se acabó el tiempo
+    }
   }, 1000);
 }
 
@@ -243,32 +255,67 @@ btnStart.addEventListener("click", () => {
     return;
   }
 
-  const system = systemSelect.value;
-  const n = parseInt(numQuestionsEl.value, 10);
+  const mode   = modeSelect.value;      // "block" o "simulacro"
+  const system = systemSelect.value;    // ej. "Cardiología"
+  let   n      = parseInt(numQuestionsEl.value, 10);
+
   if (isNaN(n) || n <= 0) {
     startError.textContent = "Número de preguntas inválido.";
     return;
   }
-  QUESTIONS_PER_BLOCK = n;
 
-  // Filtrar por sistema
-  let pool = allQuestions;
-  if (system !== "ALL") {
-    pool = allQuestions.filter(q => q.system === system);
+  currentMode = mode;
+
+  if (mode === "block") {
+    // 🔹 BLOQUE POR SISTEMA
+    let pool = allQuestions.filter(q => q.system === system);
+
+    if (pool.length === 0) {
+      startError.textContent = "No hay preguntas para ese sistema.";
+      return;
+    }
+
+    const shuffled = shuffle(pool);
+    examQuestions = shuffled.slice(0, Math.min(n, shuffled.length));
+
+  } else if (mode === "simulacro") {
+    // 🔹 SIMULACRO: 7 preguntas por cada subárea/sistema
+
+    // 1. Agrupar por sistema
+    const bySystem = {};
+    allQuestions.forEach(q => {
+      const sys = q.system || "Sin sistema";
+      if (!bySystem[sys]) bySystem[sys] = [];
+      bySystem[sys].push(q);
+    });
+
+    const PER_SYSTEM = 7;  // 7 casos por subárea
+    let selected = [];
+
+    Object.keys(bySystem).forEach(sys => {
+      const pool = shuffle(bySystem[sys]);
+      const slice = pool.slice(0, PER_SYSTEM);
+      selected = selected.concat(slice);
+    });
+
+    // 2. Barajar todas juntas
+    selected = shuffle(selected);
+
+    examQuestions = selected;
+    // Forzar que el input muestre cuántas se van a usar realmente
+    numQuestionsEl.value = examQuestions.length;
   }
 
-  if (pool.length === 0) {
-    startError.textContent = "No hay preguntas para ese sistema.";
+  if (!examQuestions || examQuestions.length === 0) {
+    startError.textContent = "No se pudieron armar preguntas para este modo.";
     return;
   }
 
-  const shuffled = shuffle(pool);
-  examQuestions = shuffled.slice(0, Math.min(QUESTIONS_PER_BLOCK, shuffled.length));
   currentIndex = 0;
   answers = {};
 
   showScreen("exam");
-  startTimer();
+  startTimer(mode);
   renderQuestion();
 });
 
@@ -281,12 +328,127 @@ btnPrev.addEventListener("click", () => {
 
 btnNext.addEventListener("click", () => {
   if (currentIndex === examQuestions.length - 1) {
-    finishExam();
+    function finishExam(timeUp = false) {
+  stopTimer();
+
+  const totalQuestions = examQuestions.length;
+  let correctCount = 0;
+
+  examQuestions.forEach(q => {
+    if (answers[q.id] === q.correct) correctCount++;
+  });
+
+  const percentGlobal = Math.round((correctCount / totalQuestions) * 100);
+
+  // 🔹 Estadísticas por sistema/subárea
+  const statsBySystem = {};
+  examQuestions.forEach(q => {
+    const sys = q.system || "Sin sistema";
+    if (!statsBySystem[sys]) statsBySystem[sys] = { total: 0, correct: 0 };
+    statsBySystem[sys].total++;
+    if (answers[q.id] === q.correct) statsBySystem[sys].correct++;
+  });
+
+  const systems = Object.keys(statsBySystem);
+  const totalSystems = systems.length;
+
+  // ✅ Regla ECOM simulacro:
+  //  - se considera subárea aprobada si tiene >=70% correctas (≈5/7)
+  //  - se aprueba si >=70% de subáreas están aprobadas
+  let systemsPassed = 0;
+  systems.forEach(sys => {
+    const s = statsBySystem[sys];
+    const localPercent = (s.correct / s.total) * 100;
+    if (localPercent >= 70) {
+      systemsPassed++;
+    }
+  });
+
+  const neededSystems = Math.ceil(0.7 * totalSystems);
+
+  let passed;
+  let statusText;
+  let metaExtra;
+
+  if (currentMode === "simulacro") {
+    passed = systemsPassed >= neededSystems;
+    statusText = passed ? "APROBADO SIMULACRO" : "NO APROBADO SIMULACRO";
+    metaExtra =
+      `Subáreas aprobadas: <strong>${systemsPassed} / ${totalSystems}</strong> (mínimo ${neededSystems}). ` +
+      `Puntaje global: <strong>${percentGlobal}% (${correctCount}/${totalQuestions})</strong>.`;
   } else {
-    currentIndex++;
-    renderQuestion();
+    // modo bloque normal: usar criterio 70% en ese bloque
+    passed = percentGlobal >= PASS_PERCENT;
+    statusText = passed ? "APROBADO" : "NO APROBADO";
+    metaExtra =
+      `Puntaje del bloque: <strong>${percentGlobal}% (${correctCount}/${totalQuestions})</strong>. ` +
+      `Criterio: ≥ ${PASS_PERCENT}%.`;
   }
-});
+
+  const totalSeconds = Math.floor((Date.now() - examStartTime) / 1000);
+  const avgSeconds = totalSeconds / totalQuestions;
+
+  scoreMain.textContent = `${percentGlobal}% (${correctCount} / ${totalQuestions})`;
+  scoreStatus.textContent = statusText;
+  scoreStatus.className = passed ? "score-status-pass" : "score-status-fail";
+
+  let timeMsg = `Tiempo total: <strong>${formatTime(totalSeconds)}</strong>`;
+  if (timeUp && currentMode === "simulacro") {
+    timeMsg += " (⏰ Se alcanzó el límite de 5 h)";
+  }
+
+  scoreMeta.innerHTML = `
+    <div>${timeMsg}</div>
+    <div>Tiempo promedio por pregunta: <strong>${avgSeconds.toFixed(1)} s</strong></div>
+    <div>${metaExtra}</div>
+  `;
+
+  // Tabla de detalle
+  let html = `
+    <h3>Detalle por pregunta</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Sistema</th>
+          <th>ID</th>
+          <th>Pregunta</th>
+          <th>Tu respuesta</th>
+          <th>Correcta</th>
+          <th>Estado</th>
+          <th>Explicación</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  examQuestions.forEach((q, idx) => {
+    const userAns = answers[q.id] || "-";
+    const isCorrect = userAns === q.correct;
+
+    html += `
+      <tr>
+        <td>${idx + 1}</td>
+        <td>${q.system}</td>
+        <td>${q.id}</td>
+        <td>${q.question}</td>
+        <td>${userAns}</td>
+        <td>${q.correct}</td>
+        <td>
+          <span class="pill ${isCorrect ? "pill-pass" : "pill-fail"}">
+            ${isCorrect ? "Correcta" : "Incorrecta"}
+          </span>
+        </td>
+        <td>${q.explanation || ""}</td>
+      </tr>
+    `;
+  });
+
+  html += "</tbody></table>";
+  resultsTableWrapper.innerHTML = html;
+
+  showScreen("results");
+}
 
 btnRestart.addEventListener("click", () => {
   stopTimer();
