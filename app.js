@@ -84,6 +84,27 @@ async function loadQuestions() {
   }
 }
 
+function startExam() {
+  // ✅ Reset everything
+  currentIndex = 0;
+  answers = {};
+
+  // ✅ Use ALL questions (or filter if needed)
+  examQuestions = [...allQuestions];
+
+  if (examQuestions.length === 0) {
+    console.error("No hay preguntas cargadas.");
+    startError.textContent = "No hay preguntas disponibles.";
+    return;
+  }
+
+  // ✅ Hide start screen, show exam screen
+  startScreen.style.display = "none";
+  examScreen.style.display = "block";
+
+  // ✅ Render first question
+  renderQuestion();
+}
 
 // Iniciar reloj global
 function startTimer(mode) {
