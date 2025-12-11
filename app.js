@@ -173,8 +173,8 @@ function renderQuestion() {
     : "Siguiente";
 }
 
-// Calcular resultados y mostrar pantalla tipo NBME
-function finishExam() {
+// Calcular resultados y mostrar pantalla tipo ECOM
+function finishExam(timeUp = false) {
   stopTimer();
 
   const totalQuestions = examQuestions.length;
@@ -184,19 +184,69 @@ function finishExam() {
     if (answers[q.id] === q.correct) correctCount++;
   });
 
-  const percent = Math.round((correctCount / totalQuestions) * 100);
-  const passed = percent >= PASS_PERCENT;
+  const percentGlobal = Math.round((correctCount / totalQuestions) * 100);
+
+  // 🔹 Estadísticas por sistema/subárea
+  const statsBySystem = {};
+  examQuestions.forEach(q => {
+    const sys = q.system || "Sin sistema";
+    if (!statsBySystem[sys]) statsBySystem[sys] = { total: 0, correct: 0 };
+    statsBySystem[sys].total++;
+    if (answers[q.id] === q.correct) statsBySystem[sys].correct++;
+  });
+
+  const systems = Object.keys(statsBySystem);
+  const totalSystems = systems.length;
+
+  // ✅ Regla ECOM simulacro:
+  //  - subárea aprobada si tiene >=70% correctas (≈5/7)
+  //  - simulacro aprobado si >=70% de subáreas están aprobadas
+  let systemsPassed = 0;
+  systems.forEach(sys => {
+    const s = statsBySystem[sys];
+    const localPercent = (s.correct / s.total) * 100;
+    if (localPercent >= 70) {
+      systemsPassed++;
+    }
+  });
+
+  const neededSystems = Math.ceil(0.7 * totalSystems);
+
+  let passed;
+  let statusText;
+  let metaExtra;
+
+  if (currentMode === "simulacro") {
+    passed = systemsPassed >= neededSystems;
+    statusText = passed ? "APROBADO SIMULACRO" : "NO APROBADO SIMULACRO";
+    metaExtra =
+      `Subáreas aprobadas: <strong>${systemsPassed} / ${totalSystems}</strong> (mínimo ${neededSystems}). ` +
+      `Puntaje global: <strong>${percentGlobal}% (${correctCount}/${totalQuestions})</strong>.`;
+  } else {
+    // modo bloque normal: criterio simple 70% en ese bloque
+    passed = percentGlobal >= PASS_PERCENT;
+    statusText = passed ? "APROBADO" : "NO APROBADO";
+    metaExtra =
+      `Puntaje del bloque: <strong>${percentGlobal}% (${percentGlobal}%) (${correctCount}/${totalQuestions})</strong>. ` +
+      `Criterio: ≥ ${PASS_PERCENT}%.`;
+  }
 
   const totalSeconds = Math.floor((Date.now() - examStartTime) / 1000);
   const avgSeconds = totalSeconds / totalQuestions;
 
-  scoreMain.textContent = `${percent}% (${correctCount} / ${totalQuestions})`;
-  scoreStatus.textContent = passed ? "APROBADO" : "NO APROBADO";
+  scoreMain.textContent = `${percentGlobal}% (${correctCount} / ${totalQuestions})`;
+  scoreStatus.textContent = statusText;
   scoreStatus.className = passed ? "score-status-pass" : "score-status-fail";
 
+  let timeMsg = `Tiempo total: <strong>${formatTime(totalSeconds)}</strong>`;
+  if (timeUp && currentMode === "simulacro") {
+    timeMsg += " (⏰ Se alcanzó el límite de 5 h)";
+  }
+
   scoreMeta.innerHTML = `
-    <div>Tiempo total: <strong>${formatTime(totalSeconds)}</strong></div>
+    <div>${timeMsg}</div>
     <div>Tiempo promedio por pregunta: <strong>${avgSeconds.toFixed(1)} s</strong></div>
+    <div>${metaExtra}</div>
   `;
 
   // Tabla de detalle
@@ -302,7 +352,6 @@ btnStart.addEventListener("click", () => {
     selected = shuffle(selected);
 
     examQuestions = selected;
-    // Forzar que el input muestre cuántas se van a usar realmente
     numQuestionsEl.value = examQuestions.length;
   }
 
@@ -328,127 +377,12 @@ btnPrev.addEventListener("click", () => {
 
 btnNext.addEventListener("click", () => {
   if (currentIndex === examQuestions.length - 1) {
-    function finishExam(timeUp = false) {
-  stopTimer();
-
-  const totalQuestions = examQuestions.length;
-  let correctCount = 0;
-
-  examQuestions.forEach(q => {
-    if (answers[q.id] === q.correct) correctCount++;
-  });
-
-  const percentGlobal = Math.round((correctCount / totalQuestions) * 100);
-
-  // 🔹 Estadísticas por sistema/subárea
-  const statsBySystem = {};
-  examQuestions.forEach(q => {
-    const sys = q.system || "Sin sistema";
-    if (!statsBySystem[sys]) statsBySystem[sys] = { total: 0, correct: 0 };
-    statsBySystem[sys].total++;
-    if (answers[q.id] === q.correct) statsBySystem[sys].correct++;
-  });
-
-  const systems = Object.keys(statsBySystem);
-  const totalSystems = systems.length;
-
-  // ✅ Regla ECOM simulacro:
-  //  - se considera subárea aprobada si tiene >=70% correctas (≈5/7)
-  //  - se aprueba si >=70% de subáreas están aprobadas
-  let systemsPassed = 0;
-  systems.forEach(sys => {
-    const s = statsBySystem[sys];
-    const localPercent = (s.correct / s.total) * 100;
-    if (localPercent >= 70) {
-      systemsPassed++;
-    }
-  });
-
-  const neededSystems = Math.ceil(0.7 * totalSystems);
-
-  let passed;
-  let statusText;
-  let metaExtra;
-
-  if (currentMode === "simulacro") {
-    passed = systemsPassed >= neededSystems;
-    statusText = passed ? "APROBADO SIMULACRO" : "NO APROBADO SIMULACRO";
-    metaExtra =
-      `Subáreas aprobadas: <strong>${systemsPassed} / ${totalSystems}</strong> (mínimo ${neededSystems}). ` +
-      `Puntaje global: <strong>${percentGlobal}% (${correctCount}/${totalQuestions})</strong>.`;
+    finishExam();           // 👈 aquí SOLO se llama, no se redefine
   } else {
-    // modo bloque normal: usar criterio 70% en ese bloque
-    passed = percentGlobal >= PASS_PERCENT;
-    statusText = passed ? "APROBADO" : "NO APROBADO";
-    metaExtra =
-      `Puntaje del bloque: <strong>${percentGlobal}% (${correctCount}/${totalQuestions})</strong>. ` +
-      `Criterio: ≥ ${PASS_PERCENT}%.`;
+    currentIndex++;
+    renderQuestion();
   }
-
-  const totalSeconds = Math.floor((Date.now() - examStartTime) / 1000);
-  const avgSeconds = totalSeconds / totalQuestions;
-
-  scoreMain.textContent = `${percentGlobal}% (${correctCount} / ${totalQuestions})`;
-  scoreStatus.textContent = statusText;
-  scoreStatus.className = passed ? "score-status-pass" : "score-status-fail";
-
-  let timeMsg = `Tiempo total: <strong>${formatTime(totalSeconds)}</strong>`;
-  if (timeUp && currentMode === "simulacro") {
-    timeMsg += " (⏰ Se alcanzó el límite de 5 h)";
-  }
-
-  scoreMeta.innerHTML = `
-    <div>${timeMsg}</div>
-    <div>Tiempo promedio por pregunta: <strong>${avgSeconds.toFixed(1)} s</strong></div>
-    <div>${metaExtra}</div>
-  `;
-
-  // Tabla de detalle
-  let html = `
-    <h3>Detalle por pregunta</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Sistema</th>
-          <th>ID</th>
-          <th>Pregunta</th>
-          <th>Tu respuesta</th>
-          <th>Correcta</th>
-          <th>Estado</th>
-          <th>Explicación</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-
-  examQuestions.forEach((q, idx) => {
-    const userAns = answers[q.id] || "-";
-    const isCorrect = userAns === q.correct;
-
-    html += `
-      <tr>
-        <td>${idx + 1}</td>
-        <td>${q.system}</td>
-        <td>${q.id}</td>
-        <td>${q.question}</td>
-        <td>${userAns}</td>
-        <td>${q.correct}</td>
-        <td>
-          <span class="pill ${isCorrect ? "pill-pass" : "pill-fail"}">
-            ${isCorrect ? "Correcta" : "Incorrecta"}
-          </span>
-        </td>
-        <td>${q.explanation || ""}</td>
-      </tr>
-    `;
-  });
-
-  html += "</tbody></table>";
-  resultsTableWrapper.innerHTML = html;
-
-  showScreen("results");
-}
+});
 
 btnRestart.addEventListener("click", () => {
   stopTimer();
