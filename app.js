@@ -123,82 +123,88 @@ function showScreen(name) {
   if (name === "results") screenResults.classList.remove("hidden");
 }
 
-// Mostrar pregunta actual
 function renderQuestion() {
-  const q = examQuestions[currentIndex];
-  if (!q) return;
+     console.log("renderQuestion called. currentIndex:", currentIndex, "examQuestions length:", examQuestions.length);
+     const q = examQuestions[currentIndex];
+     console.log("Current question object:", q);
+     if (!q) {
+       console.error("No question found at index", currentIndex);
+       return;
+     }
 
-  // Encabezado
-  questionCounter.textContent = `Pregunta ${currentIndex + 1} de ${examQuestions.length}`;
-  questionSystem.textContent  = `Sistema: ${q.system}`;
-  questionStem.textContent    = `(${q.id}) ${q.question}`;
+     // Encabezado
+     questionCounter.textContent = `Pregunta ${currentIndex + 1} de ${examQuestions.length}`;
+     questionSystem.textContent  = `Sistema: ${q.system}`;
+     questionStem.textContent    = `(${q.id}) ${q.question}`;
 
-  // Limpiar imagen previa
-  questionImageWrapper.innerHTML = "";
+     // Limpiar imagen previa
+     questionImageWrapper.innerHTML = "";
 
-  // Imagen (si existe)
-  if (q.image && typeof q.image === "string" && q.image.trim() !== "") {
-    const img = document.createElement("img");
-    img.src = q.image;
-    img.alt = "Imagen de la pregunta";
-    img.className = "question-image";
+     // Imagen (si existe)
+     if (q.image && typeof q.image === "string" && q.image.trim() !== "") {
+       const img = document.createElement("img");
+       img.src = q.image;
+       img.alt = "Imagen de la pregunta";
+       img.className = "question-image";
 
-    img.onerror = () => {
-      console.warn("Imagen no encontrada:", q.image);
-      img.remove();
-    };
+       img.onerror = () => {
+         console.warn("Imagen no encontrada:", q.image);
+         img.remove();
+       };
 
-    questionImageWrapper.appendChild(img);
-  }
+       questionImageWrapper.appendChild(img);
+     }
 
-  // Opciones
-  optionsContainer.innerHTML = "";
-  const letters = ["A", "B", "C", "D"];
+     // Opciones
+     optionsContainer.innerHTML = "";
+     const letters = ["A", "B", "C", "D"];
 
-  letters.forEach(letter => {
-    const text = q.options[letter];
-    if (!text || text.trim() === "") return;
+     letters.forEach(letter => {
+       const text = q.options[letter];
+       if (!text || text.trim() === "") return;
 
-    const row = document.createElement("div");
-    row.className = "option-row";
+       const row = document.createElement("div");
+       row.className = "option-row";
 
-    const input = document.createElement("input");
-    input.type = "radio";
-    input.name = "option";
-    input.value = letter;
-    input.className = "option-input";
+       const input = document.createElement("input");
+       input.type = "radio";
+       input.name = "option";
+       input.value = letter;
+       input.className = "option-input";
 
-    const saved = answers[q.id];
-    if (saved === letter) {
-      input.checked = true;
-    }
+       const saved = answers[q.id];
+       if (saved === letter) {
+         input.checked = true;
+       }
 
-    input.addEventListener("change", () => {
-      answers[q.id] = letter;
-    });
+       input.addEventListener("change", () => {
+         answers[q.id] = letter;
+       });
 
-    const letterSpan = document.createElement("span");
-    letterSpan.className = "option-letter";
-    letterSpan.textContent = letter;
+       const letterSpan = document.createElement("span");
+       letterSpan.className = "option-letter";
+       letterSpan.textContent = letter;
 
-    const textSpan = document.createElement("span");
-    textSpan.className = "option-text";
-    textSpan.textContent = text;
+       const textSpan = document.createElement("span");
+       textSpan.className = "option-text";
+       textSpan.textContent = text;
 
-    row.appendChild(input);
-    row.appendChild(letterSpan);
-    row.appendChild(textSpan);
+       row.appendChild(input);
+       row.appendChild(letterSpan);
+       row.appendChild(textSpan);
 
-    optionsContainer.appendChild(row);
-  });
+       optionsContainer.appendChild(row);
+     });
 
-  // Botones Prev / Next
-  btnPrev.disabled = currentIndex === 0;
-  btnNext.textContent =
-    currentIndex === examQuestions.length - 1
-      ? "Finalizar"
-      : "Siguiente";
-}
+     console.log("Question rendered successfully.");  // Confirm it completed
+
+     // Botones Prev / Next
+     btnPrev.disabled = currentIndex === 0;
+     btnNext.textContent =
+       currentIndex === examQuestions.length - 1
+         ? "Finalizar"
+         : "Siguiente";
+   }
 
 // Calcular resultados y mostrar pantalla tipo ECOM
 function finishExam(timeUp = false) {
