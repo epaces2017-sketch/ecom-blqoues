@@ -58,13 +58,32 @@ function formatTime(totalSeconds) {
 // Cargar banco de preguntas
 async function loadQuestions() {
   try {
-    const res = await fetch("questions.json");
-    allQuestions = await res.json();
+    console.log("Intentando cargar questions.json...");
+    const res = await fetch("./questions.json", {
+      cache: "no-store"   // evitar usar versión vieja cacheada
+    });
+
+    console.log("Respuesta HTTP de questions.json:", res.status, res.statusText);
+
+    if (!res.ok) {
+      throw new Error("HTTP " + res.status + " " + res.statusText);
+    }
+
+    const data = await res.json();
+
+    console.log("Preguntas cargadas:", Array.isArray(data) ? data.length : "no es array");
+    allQuestions = Array.isArray(data) ? data : [];
+
+    if (allQuestions.length === 0) {
+      console.warn("Ojo: questions.json se cargó pero viene vacío.");
+    }
   } catch (err) {
     console.error("Error cargando questions.json", err);
     startError.textContent = "No se pudo cargar el banco de preguntas.";
+    allQuestions = [];
   }
 }
+
 
 // Iniciar reloj global
 function startTimer(mode) {
