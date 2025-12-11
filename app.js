@@ -39,7 +39,7 @@ const scoreStatus          = document.getElementById("score-status");
 const scoreMeta            = document.getElementById("score-meta");
 const resultsTableWrapper  = document.getElementById("results-table-wrapper");
 
-// Utilidades
+// ------------------ Utilidades ------------------
 function shuffle(array) {
   const arr = array.slice();
   for (let i = arr.length - 1; i > 0; i--) {
@@ -55,7 +55,7 @@ function formatTime(totalSeconds) {
   return `${String(minutes).padStart(2,"0")}:${String(seconds).padStart(2,"0")}`;
 }
 
-// Cargar banco de preguntas
+// ------------------ Cargar banco de preguntas ------------------
 async function loadQuestions() {
   try {
     console.log("Intentando cargar questions.json...");
@@ -84,7 +84,7 @@ async function loadQuestions() {
   }
 }
 
-// Iniciar reloj global
+// ------------------ Reloj global ------------------
 function startTimer(mode) {
   examStartTime = Date.now();
   if (timerInterval) {
@@ -112,7 +112,7 @@ function stopTimer() {
   }
 }
 
-// Navegación de pantallas
+// ------------------ Pantallas ------------------
 function showScreen(name) {
   screenStart.classList.add("hidden");
   screenExam.classList.add("hidden");
@@ -123,107 +123,100 @@ function showScreen(name) {
   if (name === "results") screenResults.classList.remove("hidden");
 }
 
-// Mostrar pregunta actual
+// ------------------ Mostrar pregunta actual ------------------
 function renderQuestion() {
-     console.log("renderQuestion called. currentIndex:", currentIndex, "examQuestions length:", examQuestions.length);
-     const q = examQuestions[currentIndex];
-     console.log("Current question object:", q);
-     if (!q) {
-       console.error("No question found at index", currentIndex);
-       return;
-     }
+  console.log(
+    "renderQuestion called. currentIndex:",
+    currentIndex,
+    "examQuestions length:",
+    examQuestions.length
+  );
 
-     // Encabezado
-     questionCounter.textContent = `Pregunta ${currentIndex + 1} de ${examQuestions.length}`;
-     questionSystem.textContent  = `Sistema: ${q.system}`;
-     questionStem.textContent    = `(${q.id}) ${q.question}`;
+  const q = examQuestions[currentIndex];
+  console.log("Current question object:", q);
 
-     // Limpiar imagen previa
-     questionImageWrapper.innerHTML = "";
+  if (!q) {
+    console.error("No question found at index", currentIndex);
+    return;
+  }
 
-     // Imagen (si existe)
-     if (q.image && typeof q.image === "string" && q.image.trim() !== "") {
-       const img = document.createElement("img");
-       img.src = q.image;
-       img.alt = "Imagen de la pregunta";
-       img.className = "question-image";
+  // Encabezado
+  questionCounter.textContent = `Pregunta ${currentIndex + 1} de ${examQuestions.length}`;
+  questionSystem.textContent  = `Sistema: ${q.system}`;
+  questionStem.textContent    = `(${q.id}) ${q.question}`;
 
-       img.onerror = () => {
-         console.warn("Imagen no encontrada:", q.image);
-         img.remove();
-       };
+  // Imagen
+  questionImageWrapper.innerHTML = "";
+  if (q.image && typeof q.image === "string" && q.image.trim() !== "") {
+    const img = document.createElement("img");
+    img.src = q.image;
+    img.alt = "Imagen de la pregunta";
+    img.className = "question-image";
+    img.onerror = () => {
+      console.warn("Imagen no encontrada:", q.image);
+      img.remove();
+    };
+    questionImageWrapper.appendChild(img);
+  }
 
-       questionImageWrapper.appendChild(img);
-     }
+  // Opciones
+  optionsContainer.innerHTML = "";
+  const letters = ["A", "B", "C", "D"];
 
-     // Opciones
-     optionsContainer.innerHTML = "";
-     const letters = ["A", "B", "C", "D"];
+  letters.forEach(letter => {
+    const text = q.options[letter];
+    if (!text || text.trim() === "") return;
 
-     letters.forEach(letter => {
-       const text = q.options[letter];
-       if (!text || text.trim() === "") return;
+    const row = document.createElement("div");
+    row.className = "option-row";
 
-       const row = document.createElement("div");
-       row.className = "option-row";
+    const input = document.createElement("input");
+    input.type = "radio";
+    input.name = "option";
+    input.value = letter;
+    input.className = "option-input";
 
-       const input = document.createElement("input");
-       input.type = "radio";
-       input.name = "option";
-       input.value = letter;
-       input.className = "option-input";
+    const saved = answers[q.id];
+    if (saved === letter) {
+      input.checked = true;
+    }
 
-       const saved = answers[q.id];
-       if (saved === letter) {
-         input.checked = true;
-       }
+    input.addEventListener("change", () => {
+      answers[q.id] = letter;
+    });
 
-       input.addEventListener("change", () => {
-         answers[q.id] = letter;
-       });
+    const letterSpan = document.createElement("span");
+    letterSpan.className = "option-letter";
+    letterSpan.textContent = letter;
 
-       const letterSpan = document.createElement("span");
-       letterSpan.className = "option-letter";
-       letterSpan.textContent = letter;
+    const textSpan = document.createElement("span");
+    textSpan.className = "option-text";
+    textSpan.textContent = text;
 
-       const textSpan = document.createElement("span");
-       textSpan.className = "option-text";
-       textSpan.textContent = text;
+    row.appendChild(input);
+    row.appendChild(letterSpan);
+    row.appendChild(textSpan);
 
-       row.appendChild(input);
-       row.appendChild(letterSpan);
-       row.appendChild(textSpan);
-       
-        //permitir click en toda la fila
-       row.addEventListener("click", () => {
-         input.checked=true;
-         answers[q.id] = letter;
-       })
+    // permitir click en toda la fila
+    row.addEventListener("click", () => {
+      input.checked = true;
+      answers[q.id] = letter;
+    });
 
-       optionsContainer.appendChild(row);
-     });
+    optionsContainer.appendChild(row);
+  });
 
-         console.log(
-  "renderQuestion called. currentIndex:",
-  currentIndex,
-  "examQuestions length:",
-  examQuestions.length
-           if (!q) {
-  console.error("No question found at index", currentIndex);
-  return;
+  // Botones Prev / Next
+  btnPrev.disabled = currentIndex === 0;
+  btnNext.textContent =
+    currentIndex === examQuestions.length - 1
+      ? "Finalizar"
+      : "Siguiente";
+
+  console.log("Question rendered successfully.");
 }
 
-);
-
-     // Botones Prev / Next
-     btnPrev.disabled = currentIndex === 0;
-     btnNext.textContent =
-       currentIndex === examQuestions.length - 1
-         ? "Finalizar"
-         : "Siguiente";
-   }
-
-// Calcular resultados y mostrar pantalla tipo ECOM
+// ------------------ Finalizar examen ------------------
 function finishExam(timeUp = false) {
   stopTimer();
 
@@ -342,7 +335,7 @@ function finishExam(timeUp = false) {
   showScreen("results");
 }
 
-// Eventos
+// ------------------ Eventos ------------------
 btnStart.addEventListener("click", () => {
   startError.textContent = "";
 
@@ -427,13 +420,13 @@ btnNext.addEventListener("click", () => {
 btnRestart.addEventListener("click", () => {
   stopTimer();
   globalTimerEl.textContent = "00:00";
-  answers      = {};
+  answers       = {};
   examQuestions = [];
   currentIndex  = 0;
   showScreen("start");
 });
 
-// Arranque
+// ------------------ Arranque ------------------
 loadQuestions();
 showScreen("start");
 
