@@ -223,23 +223,6 @@ function renderQuestion() {
       : "Siguiente";
 }
 
-
-    // Permitir click en todo el row
-    row.addEventListener("click", (e) => {
-      input.checked = true;
-      answers[q.id] = letter;
-    });
-
-    optionsContainer.appendChild(row);
-  });
-
-  // Prev/Next habilitados
-  btnPrev.disabled = currentIndex === 0;
-  btnNext.textContent = (currentIndex === examQuestions.length - 1)
-    ? "Finalizar bloque"
-    : "Siguiente";
-}
-
 // Calcular resultados y mostrar pantalla tipo ECOM
 function finishExam(timeUp = false) {
   stopTimer();
