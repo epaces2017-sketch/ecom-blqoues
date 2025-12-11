@@ -129,39 +129,36 @@ function renderQuestion() {
   const q = examQuestions[currentIndex];
   if (!q) return;
 
+  // Encabezado
   questionCounter.textContent = `Pregunta ${currentIndex + 1} de ${examQuestions.length}`;
   questionSystem.textContent = `Sistema: ${q.system}`;
-
   questionStem.textContent = `(${q.id}) ${q.question}`;
+
+  // Limpiar imagen previa
   questionImageWrapper.innerHTML = "";
 
-// ✅ Nueva validación segura
-questionImageWrapper.innerHTML = "";
+  // ✅ Mostrar imagen solo si existe
+  if (q.image && typeof q.image === "string" && q.image.trim() !== "") {
+    const img = document.createElement("img");
+    img.src = q.image;
+    img.alt = "Imagen de la pregunta";
+    img.className = "question-image";
 
-if (q.image && typeof q.image === "string" && q.image.trim() !== "") {
-  const img = document.createElement("img");
+    img.onerror = () => {
+      console.warn("Imagen no encontrada:", q.image);
+      img.remove();
+    };
 
-  // ✅ Try loading the image
-  img.src = q.image;
-  img.alt = "Imagen de la pregunta";
-  img.className = "question-image";
+    questionImageWrapper.appendChild(img);
+  }
 
-  // ✅ If the image does NOT exist → remove it silently
-  img.onerror = () => {
-    console.warn("Imagen no encontrada:", q.image);
-    img.remove();
-  };
-
-  questionImageWrapper.appendChild(img);
-}
-
-
+  // ✅ Mostrar opciones
   optionsContainer.innerHTML = "";
-  const letters = ["A","B","C","D"];
+  const letters = ["A", "B", "C", "D"];
 
   letters.forEach(letter => {
     const text = q.options[letter];
-    if (!text) return;
+    if (!text || text.trim() === "") return; // saltar opciones vacías
 
     const row = document.createElement("div");
     row.className = "option-row";
@@ -177,6 +174,10 @@ if (q.image && typeof q.image === "string" && q.image.trim() !== "") {
       input.checked = true;
     }
 
+    input.addEventListener("change", () => {
+      answers[q.id] = letter;
+    });
+
     const letterSpan = document.createElement("span");
     letterSpan.className = "option-letter";
     letterSpan.textContent = letter;
@@ -188,6 +189,19 @@ if (q.image && typeof q.image === "string" && q.image.trim() !== "") {
     row.appendChild(input);
     row.appendChild(letterSpan);
     row.appendChild(textSpan);
+
+    optionsContainer.appendChild(row);
+  });
+
+  // ✅ Botones Prev / Next
+  btnPrev.disabled = currentIndex === 0;
+
+  btnNext.textContent =
+    currentIndex === examQuestions.length - 1
+      ? "Finalizar"
+      : "Siguiente";
+}
+
 
     // Permitir click en todo el row
     row.addEventListener("click", (e) => {
