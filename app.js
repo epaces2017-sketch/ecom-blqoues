@@ -123,6 +123,7 @@ function showScreen(name) {
   if (name === "results") screenResults.classList.remove("hidden");
 }
 
+// Mostrar pregunta actual
 function renderQuestion() {
      console.log("renderQuestion called. currentIndex:", currentIndex, "examQuestions length:", examQuestions.length);
      const q = examQuestions[currentIndex];
@@ -192,13 +193,27 @@ function renderQuestion() {
        row.appendChild(input);
        row.appendChild(letterSpan);
        row.appendChild(textSpan);
+       
+        //permitir click en toda la fila
+       row.addEventListener("click", () => {
+         input.checked=true;
+         answers[q.id] = letter;
+       })
 
        optionsContainer.appendChild(row);
      });
 
-          console.log("renderQuestion called. currentIndex:", currentIndex, "examQuestions length:", examQuestions.length);
-     const q = examQuestions[currentIndex];
-     console.log("Current question object:", q);
+         console.log(
+  "renderQuestion called. currentIndex:",
+  currentIndex,
+  "examQuestions length:",
+  examQuestions.length
+           if (!q) {
+  console.error("No question found at index", currentIndex);
+  return;
+}
+
+);
 
      // Botones Prev / Next
      btnPrev.disabled = currentIndex === 0;
