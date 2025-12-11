@@ -136,16 +136,25 @@ function renderQuestion() {
   questionImageWrapper.innerHTML = "";
 
 // ✅ Nueva validación segura
+questionImageWrapper.innerHTML = "";
+
 if (q.image && typeof q.image === "string" && q.image.trim() !== "") {
   const img = document.createElement("img");
+
+  // ✅ Try loading the image
   img.src = q.image;
   img.alt = "Imagen de la pregunta";
   img.className = "question-image";
-  // ✅ Si la imagen NO existe, se elimina y se ignora
-  img.onerror = () => img.remove();
+
+  // ✅ If the image does NOT exist → remove it silently
+  img.onerror = () => {
+    console.warn("Imagen no encontrada:", q.image);
+    img.remove();
+  };
 
   questionImageWrapper.appendChild(img);
 }
+
 
   optionsContainer.innerHTML = "";
   const letters = ["A","B","C","D"];
