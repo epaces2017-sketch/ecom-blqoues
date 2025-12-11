@@ -196,7 +196,9 @@ function renderQuestion() {
        optionsContainer.appendChild(row);
      });
 
-     console.log("Question rendered successfully.");  // Confirm it completed
+          console.log("renderQuestion called. currentIndex:", currentIndex, "examQuestions length:", examQuestions.length);
+     const q = examQuestions[currentIndex];
+     console.log("Current question object:", q);
 
      // Botones Prev / Next
      btnPrev.disabled = currentIndex === 0;
