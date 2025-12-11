@@ -135,8 +135,6 @@ function renderQuestion() {
   questionStem.textContent = `(${q.id}) ${q.question}`;
   questionImageWrapper.innerHTML = "";
 
-  questionImageWrapper.innerHTML = "";
-
 // ✅ Nueva validación segura
 if (q.image && typeof q.image === "string" && q.image.trim() !== "") {
   const img = document.createElement("img");
