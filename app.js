@@ -2,6 +2,29 @@
 const PASS_PERCENT = 70;
 let QUESTIONS_PER_BLOCK = 35;
 let currentMode = "block"; // "block" o "simulacro"
+const SIMULACRO_SPECIALTIES = [
+  "Neumología",
+  "Cirugía",
+  "Gastroenterología",
+  "Ginecología - Obstetricia",
+  "Hematología",
+  "Urología",
+  "Endocrinología",
+  "Dermatología",
+  "Infectología",
+  "Reumatología",
+  "Vascular",
+  "Traumatología",
+  "Otorrinolaringología",
+  "Geriatría",
+  "Psiquiatría",
+  "Neurología",
+  "Pediatría",
+  "Cardiología",
+  "Medicina Familiar",
+  "Investigacion y Etica Medica",
+  "Nefrología"
+];
 
 // Estado global
 let allQuestions = [];
@@ -49,6 +72,28 @@ function shuffle(array) {
   return arr;
 }
 
+function buildSimulacroQuestions() {
+  const PER_SPECIALTY = 7;
+  let selected = [];
+
+  SIMULACRO_SPECIALTIES.forEach(spec => {
+    const pool = allQuestions.filter(q => (q.system || "").trim() === spec);
+
+    if (pool.length === 0) {
+      console.warn(`⚠️ No hay preguntas para: ${spec}`);
+      return;
+    }
+
+    if (pool.length < PER_SPECIALTY) {
+      console.warn(`⚠️ ${spec} tiene solo ${pool.length} preguntas (se usarán todas)`);
+    }
+
+    const slice = shuffle(pool).slice(0, PER_SPECIALTY);
+    selected = selected.concat(slice);
+  });
+
+  return shuffle(selected);
+}
 function formatTime(totalSeconds) {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
@@ -239,36 +284,57 @@ function finishExam(timeUp = false) {
   });
 
   const systems = Object.keys(statsBySystem);
-  const totalSystems = systems.length;
-
-  let systemsPassed = 0;
-  systems.forEach(sys => {
-    const s = statsBySystem[sys];
-    const localPercent = (s.correct / s.total) * 100;
-    if (localPercent >= 70) {
-      systemsPassed++;
-    }
-  });
-
-  const neededSystems = Math.ceil(0.7 * totalSystems);
 
   let passed;
   let statusText;
   let metaExtra;
 
-  if (currentMode === "simulacro") {
+  if (currentMode === "block") {
+    // criterio global por porcentaje
+    passed = percentGlobal >= PASS_PERCENT;
+    statusText = passed ? "APROBADO BLOQUE" : "NO APROBADO BLOQUE";
+
+    const totalSystems = systems.length;
+    let systemsPassed = 0;
+    systems.forEach(sys => {
+      const s = statsBySystem[sys];
+      const localPercent = (s.correct / s.total) * 100;
+      if (localPercent >= 70) systemsPassed++;
+    });
+    const neededSystems = Math.ceil(0.7 * totalSystems);
+
+    metaExtra =
+      `Sistemas aprobados: <strong>${systemsPassed} / ${totalSystems}</strong> (mínimo ${neededSystems}). ` +
+      `Criterio por sistema: <strong>≥ 70%</strong>.`;
+  } else if (currentMode === "simulacro") {
+    // criterio por subárea: mínimo 4/7 correctas
+    let systemsPassed = 0;
+    systems.forEach(sys => {
+      const s = statsBySystem[sys];
+      if (s.correct >= 4) systemsPassed++;
+    });
+    const neededSystems = Math.ceil(0.5 * systems.length);
+
     passed = systemsPassed >= neededSystems;
     statusText = passed ? "APROBADO SIMULACRO" : "NO APROBADO SIMULACRO";
+
     metaExtra =
-      `Subáreas aprobadas: <strong>${systemsPassed} / ${totalSystems}</strong> (mínimo ${neededSystems}). ` +
-      `Puntaje global: <strong>${percentGlobal}% (${correctCount}/${totalQuestions})</strong>.`;
-  } else {
-    passed = percentGlobal >= PASS_PERCENT;
-    statusText = passed ? "APROBADO" : "NO APROBADO";
-    metaExtra =
-      `Puntaje del bloque: <strong>${percentGlobal}% (${correctCount}/${totalQuestions})</strong>. ` +
-      `Criterio: ≥ ${PASS_PERCENT}%.`;
+      `Subáreas aprobadas: <strong>${systemsPassed} / ${systems.length}</strong> (mínimo ${neededSystems}). ` +
+      `Criterio por subárea: <strong>≥ 4/7 (50%)</strong>.`;
   }
+
+  const totalSeconds = Math.floor((Date.now() - examStartTime) / 1000);
+  const avgSeconds   = totalSeconds / totalQuestions;
+
+  scoreMain.textContent   = `${percentGlobal}% (${correctCount} / ${totalQuestions})`;
+  scoreStatus.textContent = statusText;
+  scoreStatus.className   = passed ? "score-status-pass" : "score-status-fail";
+
+  let timeMsg = `Tiempo total: <strong>${formatTime(totalSeconds)}</strong>`;
+  if (timeUp && currentMode === "simulacro") {
+    timeMsg += " (⏰ Se alcanzó el límite de 5 h)";
+  }
+}
 
   const totalSeconds = Math.floor((Date.now() - examStartTime) / 1000);
   const avgSeconds   = totalSeconds / totalQuestions;
@@ -336,13 +402,10 @@ function finishExam(timeUp = false) {
 }
 
 // ------------------ Eventos ------------------
-btnStart.addEventListener("click", () => {
-  startError.textContent = "";
-
-  if (!allQuestions || allQuestions.length === 0) {
-    startError.textContent = "Aún no se ha cargado el banco de preguntas.";
-    return;
-  }
+} else if (mode === "simulacro") {
+  examQuestions = buildSimulacroQuestions();
+  numQuestionsEl.value = examQuestions.length;
+}
 
   const mode   = modeSelect.value;      // "block" o "simulacro"
   const system = systemSelect.value;
