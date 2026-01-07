@@ -399,14 +399,8 @@ function finishExam(timeUp = false) {
   resultsTableWrapper.innerHTML = html;
 
   showScreen("results");
-}
 
 // ------------------ Eventos ------------------
-} else if (mode === "simulacro") {
-  examQuestions = buildSimulacroQuestions();
-  numQuestionsEl.value = examQuestions.length;
-}
-
   const mode   = modeSelect.value;      // "block" o "simulacro"
   const system = systemSelect.value;
   let   n      = parseInt(numQuestionsEl.value, 10);
@@ -462,7 +456,6 @@ function finishExam(timeUp = false) {
   showScreen("exam");
   startTimer(mode);
   renderQuestion();
-});
 
 btnPrev.addEventListener("click", () => {
   if (currentIndex > 0) {
@@ -492,4 +485,3 @@ btnRestart.addEventListener("click", () => {
 // ------------------ Arranque ------------------
 loadQuestions();
 showScreen("start");
-
