@@ -62,7 +62,7 @@ const scoreStatus          = document.getElementById("score-status");
 const scoreMeta            = document.getElementById("score-meta");
 const resultsTableWrapper  = document.getElementById("results-table-wrapper");
 
-// ------------------ Utilidades ------------------
+/* ------------------ Utilidades ------------------ */
 function shuffle(array) {
   const arr = array.slice();
   for (let i = arr.length - 1; i > 0; i--) {
