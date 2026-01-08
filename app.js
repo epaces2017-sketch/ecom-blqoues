@@ -1,6 +1,6 @@
 // Parámetros del examen
 const PASS_PERCENT = 70;
-let QUESTIONS_PER_BLOCK = 35;
+let QUESTIONS_PER_BLOCK = 35; 
 let currentMode = "block"; // "block" o "simulacro"
 const SIMULACRO_SPECIALTIES = [
   "Neumología",
@@ -33,52 +33,56 @@ let currentIndex = 0;
 let answers = {};          // { questionId: "A"|"B"|... }
 let examStartTime = null;
 let timerInterval = null;
+let currentMode = "block"; // "block" o "simulacro" - Inicializar aquí para evitar problemas de scope
 
-// Referencias DOM
-const screenStart   = document.getElementById("screen-start");
-const screenExam    = document.getElementById("screen-exam");
-const screenResults = document.getElementById("screen-results");
-const modeSelect    = document.getElementById("mode-select");
+// Referencias DOM - Usar querySelector para evitar errores si los elementos no existen
+const screenStart   = document.querySelector("#screen-start");
+const screenExam    = document.querySelector("#screen-exam");
+const screenResults = document.querySelector("#screen-results");
+const modeSelect    = document.querySelector("#mode-select");
 
-const btnStart   = document.getElementById("btn-start");
-const btnPrev    = document.getElementById("btn-prev");
-const btnNext    = document.getElementById("btn-next");
-const btnRestart = document.getElementById("btn-restart");
+const btnStart   = document.querySelector("#btn-start");
+const btnPrev    = document.querySelector("#btn-prev");
+const btnNext    = document.querySelector("#btn-next");
+const btnRestart = document.querySelector("#btn-restart");
 
-const systemSelect   = document.getElementById("system-select");
-const numQuestionsEl = document.getElementById("num-questions");
-const startError     = document.getElementById("start-error");
+const systemSelect   = document.querySelector("#system-select");
+const numQuestionsEl = document.querySelector("#num-questions");
+const startError     = document.querySelector("#start-error");
 
-const questionCounter      = document.getElementById("question-counter");
-const questionSystem       = document.getElementById("question-system");
-const questionStem         = document.getElementById("question-stem");
-const questionImageWrapper = document.getElementById("question-image-wrapper");
-const optionsContainer     = document.getElementById("options-container");
+const questionCounter      = document.querySelector("#question-counter");
+const questionSystem       = document.querySelector("#question-system");
+const questionStem         = document.querySelector("#question-stem");
+const questionImageWrapper = document.querySelector("#question-image-wrapper");
+const optionsContainer     = document.querySelector("#options-container");
 
-const globalTimerEl        = document.getElementById("global-timer");
+const globalTimerEl        = document.querySelector("#global-timer");
 
-const scoreMain            = document.getElementById("score-main");
-const scoreStatus          = document.getElementById("score-status");
-const scoreMeta            = document.getElementById("score-meta");
-const resultsTableWrapper  = document.getElementById("results-table-wrapper");
+const scoreMain            = document.querySelector("#score-main");
+const scoreStatus          = document.querySelector("#score-status");
+const scoreMeta            = document.querySelector("#score-meta");
+const resultsTableWrapper  = document.querySelector("#results-table-wrapper");
 
 /* ------------------ Utilidades ------------------ */
 function shuffle(array) {
-  const arr = array.slice();
-  for (let i = arr.length - 1; i > 0; i--) {
+  // Implementación Fisher-Yates shuffle (más eficiente)
+  for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+    [array[i], array[j]] = [array[j], array[i]];
   }
-  return arr;
+  return array;
 }
 
 function buildSimulacroQuestions() {
   const PER_SPECIALTY = 7;
   let selected = [];
 
-  // Asegúrate de que SIMULACRO_SPECIALTIES esté definido como array
-  if (!Array.isArray(SIMULACRO_SPECIALTIES)) return [];
-  
+  // Validación más robusta
+  if (!Array.isArray(SIMULACRO_SPECIALTIES) || SIMULACRO_SPECIALTIES.length === 0) {
+    console.error("SIMULACRO_SPECIALTIES no está definido o está vacío.");
+    return [];
+  }
+
   SIMULACRO_SPECIALTIES.forEach(spec => {
     const pool = allQuestions.filter(q => (q.system || "").trim() === spec);
 
@@ -87,16 +91,14 @@ function buildSimulacroQuestions() {
       return;
     }
 
-    if (pool.length < PER_SPECIALTY) {
-      console.warn(`⚠️ ${spec} tiene solo ${pool.length} preguntas (se usarán todas)`);
-    }
-
-    const slice = shuffle(pool).slice(0, PER_SPECIALTY);
+    const numToSelect = Math.min(PER_SPECIALTY, pool.length); // Seleccionar como máximo PER_SPECIALTY o el tamaño del pool si es menor
+    const slice = shuffle(pool).slice(0, numToSelect);
     selected = selected.concat(slice);
   });
 
   return shuffle(selected);
 }
+
 function formatTime(totalSeconds) {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
@@ -105,51 +107,53 @@ function formatTime(totalSeconds) {
 
 // ------------------ Lógica de inicio del examen ------------------
 function startExam() {
-  const mode = modeSelect ? modeSelect.value : "block"; 
-  const system = systemSelect ? systemSelect.value : "";
-  let n = parseInt(numQuestionsEl ? numQuestionsEl.value : "0", 10);
+  // Usar operador de encadenamiento opcional para evitar errores si los elementos son null
+  const mode = modeSelect?.value || "block";
+  const system = systemSelect?.value || "";
+  const n = parseInt(numQuestionsEl?.value || "0", 10);
 
-  if (isNaN(n) || n <= 0) { 
-    if (startError) startError.textContent = "Número de preguntas inválido."; return;
-}
+  if (isNaN(n) || n <= 0) {
+    startError.textContent = "Número de preguntas inválido.";
+    return;
+  }
 
   currentMode = mode;
-  
+
   if (mode === "block") {
-    let pool = allQuestions.filter(q => q.system === system);
+    const pool = allQuestions.filter(q => q.system === system);
 
     if (pool.length === 0) {
-      if (startError) startError.textContent = "No hay preguntas para ese sistema."; return; 
+      startError.textContent = "No hay preguntas para ese sistema.";
+      return;
     }
 
     const shuffled = shuffle(pool);
     examQuestions = shuffled.slice(0, Math.min(n, shuffled.length));
 
-    } else if (mode === "simulacro") {
+  } else if (mode === "simulacro") {
     examQuestions = buildSimulacroQuestions();
 
     if (n && examQuestions.length > n) {
-      examQuestions = examQuestions.slice(0, n); 
+      examQuestions = examQuestions.slice(0, n);
     }
-if (numQuestionsEl) numQuestionsEl.value = examQuestions.length; 
-  
-} else { 
-    if (startError) startError.textContent = "Modo desconocido."; 
-    return; 
+    numQuestionsEl.value = examQuestions.length; // Actualizar el valor del input
+  } else {
+    startError.textContent = "Modo desconocido.";
+    return;
   }
 
   if (!examQuestions || examQuestions.length === 0) {
-    if (startError) startError.textContent = "No se pudieron armar preguntas para este modo.";
-    return; 
+    startError.textContent = "No se pudieron armar preguntas para este modo.";
+    return;
   }
 
   currentIndex = 0;
   answers = {};
   examStartTime = Date.now();
-  
+
   showScreen("exam");
-  startTimer();
-  renderQuestion(); 
+  startTimer(currentMode); // Pasar el modo al timer
+  renderQuestion();
 }
 
 // ------------------ Cargar banco de preguntas ------------------
@@ -163,7 +167,7 @@ async function loadQuestions() {
     console.log("Respuesta HTTP de questions.json:", res.status, res.statusText);
 
     if (!res.ok) {
-      throw new Error("HTTP " + res.status + " " + res.statusText);
+      throw new Error(`HTTP ${res.status} ${res.statusText}`); // Usar template literals para mejor legibilidad
     }
 
     const data = await res.json();
@@ -211,13 +215,14 @@ function stopTimer() {
 
 // ------------------ Pantallas ------------------
 function showScreen(name) {
-  screenStart.classList.add("hidden");
-  screenExam.classList.add("hidden");
-  screenResults.classList.add("hidden");
+  // Usar operador de encadenamiento opcional para evitar errores si los elementos son null
+  screenStart?.classList.add("hidden");
+  screenExam?.classList.add("hidden");
+  screenResults?.classList.add("hidden");
 
-  if (name === "start")   screenStart.classList.remove("hidden");
-  if (name === "exam")    screenExam.classList.remove("hidden");
-  if (name === "results") screenResults.classList.remove("hidden");
+  if (name === "start")   screenStart?.classList.remove("hidden");
+  if (name === "exam")    screenExam?.classList.remove("hidden");
+  if (name === "results") screenResults?.classList.remove("hidden");
 }
 
 // ------------------ Mostrar pregunta actual ------------------
@@ -272,6 +277,7 @@ function renderQuestion() {
     input.name = "option";
     input.value = letter;
     input.className = "option-input";
+    input.id = `option-${q.id}-${letter}`; // ID único para accesibilidad
 
     const saved = answers[q.id];
     if (saved === letter) {
@@ -290,15 +296,13 @@ function renderQuestion() {
     textSpan.className = "option-text";
     textSpan.textContent = text;
 
-    row.appendChild(input);
-    row.appendChild(letterSpan);
-    row.appendChild(textSpan);
+    const label = document.createElement("label"); // Usar label para accesibilidad
+    label.htmlFor = `option-${q.id}-${letter}`;
+    label.appendChild(input);
+    label.appendChild(letterSpan);
+    label.appendChild(textSpan);
 
-    // permitir click en toda la fila
-    row.addEventListener("click", () => {
-      input.checked = true;
-      answers[q.id] = letter;
-    });
+    row.appendChild(label); // Agregar el label a la fila
 
     optionsContainer.appendChild(row);
   });
@@ -386,19 +390,6 @@ function finishExam(timeUp = false) {
   if (timeUp && currentMode === "simulacro") {
     timeMsg += " (⏰ Se alcanzó el límite de 5 h)";
   }
-}
-
-  const totalSeconds = Math.floor((Date.now() - examStartTime) / 1000);
-  const avgSeconds   = totalSeconds / totalQuestions;
-
-  scoreMain.textContent   = `${percentGlobal}% (${correctCount} / ${totalQuestions})`;
-  scoreStatus.textContent = statusText;
-  scoreStatus.className   = passed ? "score-status-pass" : "score-status-fail";
-
-  let timeMsg = `Tiempo total: <strong>${formatTime(totalSeconds)}</strong>`;
-  if (timeUp && currentMode === "simulacro") {
-    timeMsg += " (⏰ Se alcanzó el límite de 5 h)";
-  }
 
   scoreMeta.innerHTML = `
     <div>${timeMsg}</div>
@@ -451,63 +442,10 @@ function finishExam(timeUp = false) {
   resultsTableWrapper.innerHTML = html;
 
   showScreen("results");
+}
 
 // ------------------ Eventos ------------------
-  const mode   = modeSelect.value;      // "block" o "simulacro"
-  const system = systemSelect.value;
-  let   n      = parseInt(numQuestionsEl.value, 10);
-
-  if (isNaN(n) || n <= 0) {
-    startError.textContent = "Número de preguntas inválido.";
-    return;
-  }
-
-  currentMode = mode;
-
-  if (mode === "block") {
-    let pool = allQuestions.filter(q => q.system === system);
-
-    if (pool.length === 0) {
-      startError.textContent = "No hay preguntas para ese sistema.";
-      return;
-    }
-
-    const shuffled = shuffle(pool);
-    examQuestions  = shuffled.slice(0, Math.min(n, shuffled.length));
-
-  } else if (mode === "simulacro") {
-    const bySystem = {};
-    allQuestions.forEach(q => {
-      const sys = q.system || "Sin sistema";
-      if (!bySystem[sys]) bySystem[sys] = [];
-      bySystem[sys].push(q);
-    });
-
-    const PER_SYSTEM = 7;
-    let selected = [];
-
-    Object.keys(bySystem).forEach(sys => {
-      const pool = shuffle(bySystem[sys]);
-      const slice = pool.slice(0, PER_SYSTEM);
-      selected = selected.concat(slice);
-    });
-
-    selected      = shuffle(selected);
-    examQuestions = selected;
-    numQuestionsEl.value = examQuestions.length;
-  }
-
-  if (!examQuestions || examQuestions.length === 0) {
-    startError.textContent = "No se pudieron armar preguntas para este modo.";
-    return;
-  }
-
-  currentIndex = 0;
-  answers      = {};
-
-  showScreen("exam");
-  startTimer(mode);
-  renderQuestion();
+btnStart?.addEventListener("click", startExam); // Usar optional chaining
 
 btnPrev.addEventListener("click", () => {
   if (currentIndex > 0) {
