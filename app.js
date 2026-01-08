@@ -76,6 +76,9 @@ function buildSimulacroQuestions() {
   const PER_SPECIALTY = 7;
   let selected = [];
 
+  // Asegúrate de que SIMULACRO_SPECIALTIES esté definido como array
+  if (!Array.isArray(SIMULACRO_SPECIALTIES)) return [];
+  
   SIMULACRO_SPECIALTIES.forEach(spec => {
     const pool = allQuestions.filter(q => (q.system || "").trim() === spec);
 
@@ -98,6 +101,55 @@ function formatTime(totalSeconds) {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   return `${String(minutes).padStart(2,"0")}:${String(seconds).padStart(2,"0")}`;
+}
+
+// ------------------ Lógica de inicio del examen ------------------
+function startExam() {
+  const mode = modeSelect ? modeSelect.value : "block"; 
+  const system = systemSelect ? systemSelect.value : "";
+  let n = parseInt(numQuestionsEl ? numQuestionsEl.value : "0", 10);
+
+  if (isNaN(n) || n <= 0) { 
+    if (startError) startError.textContent = "Número de preguntas inválido."; return;
+}
+
+  currentMode = mode;
+  
+  if (mode === "block") {
+    let pool = allQuestions.filter(q => q.system === system);
+
+    if (pool.length === 0) {
+      if (startError) startError.textContent = "No hay preguntas para ese sistema."; return; 
+    }
+
+    const shuffled = shuffle(pool);
+    examQuestions = shuffled.slice(0, Math.min(n, shuffled.length));
+
+    } else if (mode === "simulacro") {
+    examQuestions = buildSimulacroQuestions();
+
+    if (n && examQuestions.length > n) {
+      examQuestions = examQuestions.slice(0, n); 
+    }
+if (numQuestionsEl) numQuestionsEl.value = examQuestions.length; 
+  
+} else { 
+    if (startError) startError.textContent = "Modo desconocido."; 
+    return; 
+  }
+
+  if (!examQuestions || examQuestions.length === 0) {
+    if (startError) startError.textContent = "No se pudieron armar preguntas para este modo.";
+    return; 
+  }
+
+  currentIndex = 0;
+  answers = {};
+  examStartTime = Date.now();
+  
+  showScreen("exam");
+  startTimer();
+  renderQuestion(); 
 }
 
 // ------------------ Cargar banco de preguntas ------------------
