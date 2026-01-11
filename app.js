@@ -325,7 +325,6 @@ function finishExam(timeUp = false) {
   });
 
   const percentGlobal = Math.round((correctCount / totalQuestions) * 100);
-}
 
   // Estadísticas por sistema
   const statsBySystem = {};
@@ -380,19 +379,13 @@ function finishExam(timeUp = false) {
   const avgSeconds = totalQuestions ? (totalSeconds / totalQuestions) : 0;
 
   scoreMain.textContent   = `${percentGlobal}% (${correctCount} / ${totalQuestions})`;
-  scoreStatus.textContent = statusText;
+  scoreStatus.textContent = statusText || "";
   scoreStatus.className   = passed ? "score-status-pass" : "score-status-fail";
 
   let timeMsg = `Tiempo total: <strong>${formatTime(totalSeconds)}</strong>`;
   if (timeUp && currentMode === "simulacro") {
     timeMsg += " (⏰ Se alcanzó el límite de 5 h)";
   }
-
-  // build meta and details, then render results screen
-
-  scoreMain.textContent   = `${percentGlobal}% (${correctCount} / ${totalQuestions})`;
-  scoreStatus.textContent = statusText || "";
-  scoreStatus.className   = passed ? "score-status-pass" : "score-status-fail";
 
   scoreMeta.innerHTML = `
     <div>${timeMsg}</div>
@@ -445,6 +438,7 @@ function finishExam(timeUp = false) {
   resultsTableWrapper.innerHTML = html;
 
   showScreen("results");
+}
 
 
 // ------------------ Eventos + Arranque (wait for DOM) ------------------
