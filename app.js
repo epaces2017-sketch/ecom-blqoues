@@ -325,6 +325,7 @@ function finishExam(timeUp = false) {
   });
 
   const percentGlobal = Math.round((correctCount / totalQuestions) * 100);
+}
 
   // Estadísticas por sistema
   const statsBySystem = {};
