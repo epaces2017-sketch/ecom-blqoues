@@ -388,6 +388,65 @@ function finishExam(timeUp = false) {
   }
 }
 
+  // build meta and details, then render results screen
+  const avgSeconds = totalQuestions ? (totalSeconds / totalQuestions) : 0;
+
+  scoreMain.textContent   = `${percentGlobal}% (${correctCount} / ${totalQuestions})`;
+  scoreStatus.textContent = statusText || "";
+  scoreStatus.className   = passed ? "score-status-pass" : "score-status-fail";
+
+  scoreMeta.innerHTML = `
+    <div>${timeMsg}</div>
+    <div>Tiempo promedio por pregunta: <strong>${avgSeconds.toFixed(1)} s</strong></div>
+    <div>${metaExtra || ""}</div>
+  `;
+
+  // Tabla de detalle
+  let html = `
+    <h3>Detalle por pregunta</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Sistema</th>
+          <th>ID</th>
+          <th>Pregunta</th>
+          <th>Tu respuesta</th>
+          <th>Correcta</th>
+          <th>Estado</th>
+          <th>Explicación</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  examQuestions.forEach((q, idx) => {
+    const userAns  = answers[q.id] || "-";
+    const isCorrect = userAns === q.correct;
+
+    html += `
+      <tr>
+        <td>${idx + 1}</td>
+        <td>${q.system || ''}</td>
+        <td>${q.id}</td>
+        <td>${q.question}</td>
+        <td>${userAns}</td>
+        <td>${q.correct}</td>
+        <td>
+          <span class="pill ${isCorrect ? "pill-pass" : "pill-fail"}">
+            ${isCorrect ? "Correcta" : "Incorrecta"}
+          </span>
+        </td>
+        <td>${q.explanation || ""}</td>
+      </tr>
+    `;
+  });
+
+  html += "</tbody></table>";
+  resultsTableWrapper.innerHTML = html;
+
+  showScreen("results");
+
 
 // ------------------ Eventos ------------------
 btnStart.addEventListener("click", startExam);
