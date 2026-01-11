@@ -376,7 +376,7 @@ function finishExam(timeUp = false) {
   }
 
   const totalSeconds = Math.floor((Date.now() - examStartTime) / 1000);
-  const avgSeconds   = totalSeconds / totalQuestions;
+  const avgSeconds = totalQuestions ? (totalSeconds / totalQuestions) : 0;
 
   scoreMain.textContent   = `${percentGlobal}% (${correctCount} / ${totalQuestions})`;
   scoreStatus.textContent = statusText;
@@ -386,10 +386,8 @@ function finishExam(timeUp = false) {
   if (timeUp && currentMode === "simulacro") {
     timeMsg += " (⏰ Se alcanzó el límite de 5 h)";
   }
-}
 
   // build meta and details, then render results screen
-  const avgSeconds = totalQuestions ? (totalSeconds / totalQuestions) : 0;
 
   scoreMain.textContent   = `${percentGlobal}% (${correctCount} / ${totalQuestions})`;
   scoreStatus.textContent = statusText || "";
