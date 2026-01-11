@@ -469,10 +469,27 @@ btnNext.addEventListener("click", () => {
 
 btnRestart.addEventListener("click", () => {
   stopTimer();
+  // Reset timers and state
   globalTimerEl.textContent = "00:00";
-  answers       = {};
+  examStartTime = null;
+  timerInterval = null;
+
+  // Reset exam data
+  answers = {};
   examQuestions = [];
-  currentIndex  = 0;
+  currentIndex = 0;
+
+  // Clear results UI
+  scoreMain.textContent = "";
+  scoreStatus.textContent = "";
+  scoreStatus.className = "";
+  scoreMeta.innerHTML = "";
+  resultsTableWrapper.innerHTML = "";
+
+  // Clear any start errors and restore defaults
+  if (startError) startError.textContent = "";
+  if (numQuestionsEl) numQuestionsEl.value = "";
+
   showScreen("start");
 });
 
