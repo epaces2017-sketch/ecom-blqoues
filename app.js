@@ -34,33 +34,33 @@ let answers = {};          // { questionId: "A"|"B"|... }
 let examStartTime = null;
 let timerInterval = null;
 
-// Referencias DOM
-const screenStart   = document.getElementById("screen-start");
-const screenExam    = document.getElementById("screen-exam");
-const screenResults = document.getElementById("screen-results");
-const modeSelect    = document.getElementById("mode-select");
+// Referencias DOM (inicializadas en DOMContentLoaded)
+let screenStart;
+let screenExam;
+let screenResults;
+let modeSelect;
 
-const btnStart   = document.getElementById("btn-start");
-const btnPrev    = document.getElementById("btn-prev");
-const btnNext    = document.getElementById("btn-next");
-const btnRestart = document.getElementById("btn-restart");
+let btnStart;
+let btnPrev;
+let btnNext;
+let btnRestart;
 
-const systemSelect   = document.getElementById("system-select");
-const numQuestionsEl = document.getElementById("num-questions");
-const startError     = document.getElementById("start-error");
+let systemSelect;
+let numQuestionsEl;
+let startError;
 
-const questionCounter      = document.getElementById("question-counter");
-const questionSystem       = document.getElementById("question-system");
-const questionStem         = document.getElementById("question-stem");
-const questionImageWrapper = document.getElementById("question-image-wrapper");
-const optionsContainer     = document.getElementById("options-container");
+let questionCounter;
+let questionSystem;
+let questionStem;
+let questionImageWrapper;
+let optionsContainer;
 
-const globalTimerEl        = document.getElementById("global-timer");
+let globalTimerEl;
 
-const scoreMain            = document.getElementById("score-main");
-const scoreStatus          = document.getElementById("score-status");
-const scoreMeta            = document.getElementById("score-meta");
-const resultsTableWrapper  = document.getElementById("results-table-wrapper");
+let scoreMain;
+let scoreStatus;
+let scoreMeta;
+let resultsTableWrapper;
 
 /* ------------------ Utilidades ------------------ */
 function shuffle(array) {
@@ -448,51 +448,81 @@ function finishExam(timeUp = false) {
   showScreen("results");
 
 
-// ------------------ Eventos ------------------
-btnStart.addEventListener("click", startExam);
+// ------------------ Eventos + Arranque (wait for DOM) ------------------
+document.addEventListener("DOMContentLoaded", () => {
+  // Resolve DOM references now
+  screenStart   = document.getElementById("screen-start");
+  screenExam    = document.getElementById("screen-exam");
+  screenResults = document.getElementById("screen-results");
+  modeSelect    = document.getElementById("mode-select");
 
-btnPrev.addEventListener("click", () => {
-  if (currentIndex > 0) {
-    currentIndex--;
-    renderQuestion();
-  }
-});
+  btnStart   = document.getElementById("btn-start");
+  btnPrev    = document.getElementById("btn-prev");
+  btnNext    = document.getElementById("btn-next");
+  btnRestart = document.getElementById("btn-restart");
 
-btnNext.addEventListener("click", () => {
-  if (currentIndex === examQuestions.length - 1) {
-    finishExam();
-  } else {
-    currentIndex++;
-    renderQuestion();
-  }
-});
+  systemSelect   = document.getElementById("system-select");
+  numQuestionsEl = document.getElementById("num-questions");
+  startError     = document.getElementById("start-error");
 
-btnRestart.addEventListener("click", () => {
-  stopTimer();
-  // Reset timers and state
-  globalTimerEl.textContent = "00:00";
-  examStartTime = null;
-  timerInterval = null;
+  questionCounter      = document.getElementById("question-counter");
+  questionSystem       = document.getElementById("question-system");
+  questionStem         = document.getElementById("question-stem");
+  questionImageWrapper = document.getElementById("question-image-wrapper");
+  optionsContainer     = document.getElementById("options-container");
 
-  // Reset exam data
-  answers = {};
-  examQuestions = [];
-  currentIndex = 0;
+  globalTimerEl        = document.getElementById("global-timer");
 
-  // Clear results UI
-  scoreMain.textContent = "";
-  scoreStatus.textContent = "";
-  scoreStatus.className = "";
-  scoreMeta.innerHTML = "";
-  resultsTableWrapper.innerHTML = "";
+  scoreMain            = document.getElementById("score-main");
+  scoreStatus          = document.getElementById("score-status");
+  scoreMeta            = document.getElementById("score-meta");
+  resultsTableWrapper  = document.getElementById("results-table-wrapper");
 
-  // Clear any start errors and restore defaults
-  if (startError) startError.textContent = "";
-  if (numQuestionsEl) numQuestionsEl.value = "";
+  // Wire events
+  if (btnStart) btnStart.addEventListener("click", startExam);
 
+  if (btnPrev) btnPrev.addEventListener("click", () => {
+    if (currentIndex > 0) {
+      currentIndex--;
+      renderQuestion();
+    }
+  });
+
+  if (btnNext) btnNext.addEventListener("click", () => {
+    if (currentIndex === examQuestions.length - 1) {
+      finishExam();
+    } else {
+      currentIndex++;
+      renderQuestion();
+    }
+  });
+
+  if (btnRestart) btnRestart.addEventListener("click", () => {
+    stopTimer();
+    // Reset timers and state
+    globalTimerEl.textContent = "00:00";
+    examStartTime = null;
+    timerInterval = null;
+
+    // Reset exam data
+    answers = {};
+    examQuestions = [];
+    currentIndex = 0;
+
+    // Clear results UI
+    if (scoreMain) scoreMain.textContent = "";
+    if (scoreStatus) { scoreStatus.textContent = ""; scoreStatus.className = ""; }
+    if (scoreMeta) scoreMeta.innerHTML = "";
+    if (resultsTableWrapper) resultsTableWrapper.innerHTML = "";
+
+    // Clear any start errors and restore defaults
+    if (startError) startError.textContent = "";
+    if (numQuestionsEl) numQuestionsEl.value = "";
+
+    showScreen("start");
+  });
+
+  // Load questions and show start screen
+  loadQuestions();
   showScreen("start");
 });
-
-// ------------------ Arranque ------------------
-loadQuestions();
-showScreen("start");
